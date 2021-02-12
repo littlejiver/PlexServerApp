@@ -103,9 +103,5 @@ def search_database(request):
         qb.login("admin", "adminadmin")
         qb.download_from_link(torrentLink)
         task = torrent_downloading_progress.delay(1)
+
         return render(request, "movies/dbsearch.html", {"temp": "Downloading " + temp[0].title() + " now!", 'task_id': task.task_id})
-
-
-def progress_bar(request):
-    task = torrent_downloading_progress.delay(1)
-    return render(request, "movies/progressbar.html", {'task_id': task.task_id})

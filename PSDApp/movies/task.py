@@ -10,10 +10,18 @@ def torrent_downloading_progress(self, duration):
     sleep(duration)
     qb = Client("http://www.on-demandlogistics.com:8080/")
     qb.login("admin", "adminadmin")
-    for i in range(100):
-        sleep(3)
-        progress_recorder.set_progress(i + 1, 100)
+    downloading = True
+    while downloading:
+        for x in qb.torrents():
+            progress_recorder.set_progress(int(x["progress"])*100, 100)
+            if int(x["progress"]) == 100.00:
+                downloading = False
 
+
+    # for i in range(100):
+    #     sleep(1)
+    #     progress_recorder.set_progress(i + 1, 100)
+    #
     # for i in range(100):
     # if float(qb.get_torrent("cca0bf46ce95c802e6a8f0e1f353978d12da6997")["total_downloaded"]) > float(qb.get_torrent("cca0bf46ce95c802e6a8f0e1f353978d12da6997")["total_size"]):
     #     progress = int(
