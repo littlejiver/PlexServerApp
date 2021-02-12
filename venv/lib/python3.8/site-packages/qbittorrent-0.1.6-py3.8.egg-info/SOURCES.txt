@@ -1,0 +1,10 @@
+setup.cfg
+setup.py
+qbittorrent/__init__.py
+qbittorrent/client.py
+qbittorrent.egg-info/PKG-INFO
+qbittorrent.egg-info/SOURCES.txt
+qbittorrent.egg-info/dependency_links.txt
+qbittorrent.egg-info/requires.txt
+qbittorrent.egg-info/top_level.txt
+qbittorrent.egg-info/zip-safe
