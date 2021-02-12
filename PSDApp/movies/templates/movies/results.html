@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title>Moivie Search Results</title>
+  </head>
+  <body>
+    <h2>is the below the correct movie?</h2>
+    <p>
+      <strong>Movie Name:</strong> - {{movietitle}} <br>
+      <strong>Movie Year:</strong> - {{movieyear}} <br>
+      <strong>Movie Stars:</strong> - {{moviestars}} <br>
+      <br>
+      <form class="" name="yes" action="/movies/result/dbsearch/" method="post">
+        {% csrf_token %}
+        <input type="submit" name="" value="Yes">
+
+      </form>
+      <br>
+      <form class="" action="/movies/">
+        <input type="submit" name="" value="No">
+      </form>
+    </p>
+  </body>
+</html>

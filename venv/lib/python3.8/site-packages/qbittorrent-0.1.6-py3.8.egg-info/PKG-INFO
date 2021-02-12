@@ -1,0 +1,17 @@
+Metadata-Version: 1.1
+Name: qbittorrent
+Version: 0.1.6
+Summary: Python wrapper for the QBittorrent web api v3.1.x
+Home-page: https://github.com/mookfist/python-qbittorent
+Author: Mookfist
+Author-email: mookfist@gmail.com
+License: Apache2
+Description: Python wrapper for QBittorrent web api v3.1.x
+Platform: UNKNOWN
+Classifier: Development Status :: 5 - Production/Stable
+Classifier: Environment :: Console
+Classifier: Intended Audience :: Developers
+Classifier: License :: OSI Approved :: Apache Software License
+Classifier: Programming Language :: Python
+Classifier: Programming Language :: Python :: 2
+Classifier: Programming Language :: Python :: 2.7
