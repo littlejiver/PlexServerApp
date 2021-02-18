@@ -1,4 +1,4 @@
-#!/home/littlejiver/Dev/PlexServerApp/venv/bin/python3
+#!/home/littlejiver/PycharmProjects/PlexServerApp/venv/bin/python
 # -*- coding: utf-8 -*-
 import re
 import sys

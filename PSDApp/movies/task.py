@@ -13,8 +13,8 @@ def torrent_downloading_progress(self, duration):
     downloading = True
     while downloading:
         for x in qb.torrents():
-            progress_recorder.set_progress(int(x["progress"])*100, 100)
-            if int(x["progress"]) == 100.00:
+            progress_recorder.set_progress(float(x["progress"])*100, 100)
+            if float(x["progress"]) == 100.00:
                 downloading = False
 
 

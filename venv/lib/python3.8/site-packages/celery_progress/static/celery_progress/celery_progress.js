@@ -1,68 +1,129 @@
-var CeleryProgressBar = (function () {
-    function onSuccessDefault(progressBarElement, progressBarMessageElement, result) {
-        progressBarElement.style.backgroundColor = '#76ce60';
-        progressBarMessageElement.innerHTML = "Success!";
+class CeleryProgressBar {
+
+    constructor(progressUrl, options) {
+        this.progressUrl = progressUrl;
+        options = options || {};
+        let progressBarId = options.progressBarId || 'progress-bar';
+        let progressBarMessage = options.progressBarMessageId || 'progress-bar-message';
+        this.progressBarElement = options.progressBarElement || document.getElementById(progressBarId);
+        this.progressBarMessageElement = options.progressBarMessageElement || document.getElementById(progressBarMessage);
+        this.onProgress = options.onProgress || CeleryProgressBar.onProgressDefault;
+        this.onSuccess = options.onSuccess || CeleryProgressBar.onSuccessDefault;
+        this.onError = options.onError || CeleryProgressBar.onErrorDefault;
+        this.onTaskError = options.onTaskError || this.onError;
+        this.onDataError = options.onDataError || this.onError;
+        let resultElementId = options.resultElementId || 'celery-result';
+        this.resultElement = options.resultElement || document.getElementById(resultElementId);
+        this.onResult = options.onResult || CeleryProgressBar.onResultDefault;
+        // HTTP options
+        this.onNetworkError = options.onNetworkError || this.onError;
+        this.onHttpError = options.onHttpError || this.onError;
+        this.pollInterval = options.pollInterval || 500;
     }
 
-    function onResultDefault(resultElement, result) {
+    static onSuccessDefault(progressBarElement, progressBarMessageElement, result) {
+        progressBarElement.style.backgroundColor = '#76ce60';
+        progressBarMessageElement.textContent = "Success! " + result;
+    }
+
+    static onResultDefault(resultElement, result) {
         if (resultElement) {
-            resultElement.innerHTML = result;
+            resultElement.textContent = result;
         }
     }
 
-    function onErrorDefault(progressBarElement, progressBarMessageElement, excMessage) {
+    /**
+     * Default handler for all errors.
+     * @param data - A Response object for HTTP errors, undefined for other errors
+     */
+    static onErrorDefault(progressBarElement, progressBarMessageElement, excMessage, data) {
         progressBarElement.style.backgroundColor = '#dc4f63';
-        progressBarMessageElement.innerHTML = "Uh-Oh, something went wrong! " + excMessage;
+        excMessage = excMessage || '';
+        progressBarMessageElement.textContent = "Uh-Oh, something went wrong! " + excMessage;
     }
 
-    function onProgressDefault(progressBarElement, progressBarMessageElement, progress) {
+    static onProgressDefault(progressBarElement, progressBarMessageElement, progress) {
         progressBarElement.style.backgroundColor = '#68a9ef';
         progressBarElement.style.width = progress.percent + "%";
         var description = progress.description || "";
-        progressBarMessageElement.innerHTML = progress.current + ' of ' + progress.total + ' processed. ' + description;
+        if (progress.current == 0) {
+            if (progress.pending === true) {
+                progressBarMessageElement.textContent = 'Waiting for task to start...';
+            } else {
+                progressBarMessageElement.textContent = 'Task started...';
+            }
+        } else {
+            progressBarMessageElement.textContent = progress.current + ' of ' + progress.total + ' processed. ' + description;
+        }
     }
 
-    function updateProgress (progressUrl, options) {
-        options = options || {};
-        var progressBarId = options.progressBarId || 'progress-bar';
-        var progressBarMessage = options.progressBarMessageId || 'progress-bar-message';
-        var progressBarElement = options.progressBarElement || document.getElementById(progressBarId);
-        var progressBarMessageElement = options.progressBarMessageElement || document.getElementById(progressBarMessage);
-        var onProgress = options.onProgress || onProgressDefault;
-        var onSuccess = options.onSuccess || onSuccessDefault;
-        var onError = options.onError || onErrorDefault;
-        var pollInterval = options.pollInterval || 500;
-        var resultElementId = options.resultElementId || 'celery-result';
-        var resultElement = options.resultElement || document.getElementById(resultElementId);
-        var onResult = options.onResult || onResultDefault;
-
-
-        fetch(progressUrl).then(function(response) {
-            response.json().then(function(data) {
-                if (data.progress) {
-                    onProgress(progressBarElement, progressBarMessageElement, data.progress);
-                }
-                if (!data.complete) {
-                    setTimeout(updateProgress, pollInterval, progressUrl, options);
-                } else {
-                    if (data.success) {
-                        onSuccess(progressBarElement, progressBarMessageElement, data.result);
-                    } else {
-                        onError(progressBarElement, progressBarMessageElement, data.result);
-                    }
-                    if (data.result) {
-                        onResult(resultElement, data.result);
-                    }
-                }
-            });
-        });
+    getMessageDetails(result) {
+        if (this.resultElement) {
+            return ''
+        } else {
+            return result || '';
+        }
     }
-    return {
-        onSuccessDefault: onSuccessDefault,
-        onResultDefault: onResultDefault,
-        onErrorDefault: onErrorDefault,
-        onProgressDefault: onProgressDefault,
-        updateProgress: updateProgress,
-        initProgressBar: updateProgress,  // just for api cleanliness
-    };
-})();
+
+    /**
+     * Process update message data.
+     * @return true if the task is complete, false if it's not, undefined if `data` is invalid
+     */
+    onData(data) {
+        let done = false;
+        if (data.progress) {
+            this.onProgress(this.progressBarElement, this.progressBarMessageElement, data.progress);
+        }
+        if (data.complete === true) {
+            done = true;
+            if (data.success === true) {
+                this.onSuccess(this.progressBarElement, this.progressBarMessageElement, this.getMessageDetails(data.result));
+            } else if (data.success === false) {
+                this.onTaskError(this.progressBarElement, this.progressBarMessageElement, this.getMessageDetails(data.result));
+            } else {
+                done = undefined;
+                this.onDataError(this.progressBarElement, this.progressBarMessageElement, "Data Error");
+            }
+            if (data.hasOwnProperty('result')) {
+                this.onResult(this.resultElement, data.result);
+            }
+        } else if (data.complete === undefined) {
+            done = undefined;
+            this.onDataError(this.progressBarElement, this.progressBarMessageElement, "Data Error");
+        }
+        return done;
+    }
+
+    async connect() {
+        let response;
+        try {
+            response = await fetch(this.progressUrl);
+        } catch (networkError) {
+            this.onNetworkError(this.progressBarElement, this.progressBarMessageElement, "Network Error");
+            throw networkError;
+        }
+
+        if (response.status === 200) {
+            let data;
+            try {
+                data = await response.json();
+            } catch (parsingError) {
+                this.onDataError(this.progressBarElement, this.progressBarMessageElement, "Parsing Error")
+                throw parsingError;
+            }
+
+            const complete = this.onData(data);
+
+            if (complete === false) {
+                setTimeout(this.connect.bind(this), this.pollInterval);
+            }
+        } else {
+            this.onHttpError(this.progressBarElement, this.progressBarMessageElement, "HTTP Code " + response.status, response);
+        }
+    }
+
+    static initProgressBar(progressUrl, options) {
+        const bar = new this(progressUrl, options);
+        bar.connect();
+    }
+}
