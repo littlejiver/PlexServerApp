@@ -6,4 +6,5 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('result/', views.result, name='result'),
     path('result/dbsearch/', views.search_database, name='dbsearch'),
+    path('result/dbsearch/move/', views.move_video_to_plex_server, name='move')
 ]
