@@ -132,12 +132,13 @@ def move_video_to_plex_server(request):
     qb.login("admin", "adminadmin")
     for root, dirs, files in os.walk("/home/littlejiver/Downloads/CompletedTorrents"):
         for file in files:
-            dir_path_needed = os.path.dirname(root + "/" + file)
+            if not os.path.exists(root.replace("/home/littlejiver/Downloads/CompletedTorrents", "/mnt/HDD1/PlexContent/Movies")):
+                os.mkdir(root.replace("/home/littlejiver/Downloads/CompletedTorrents", "/mnt/HDD1/PlexContent/Movies"))
+            shutil.move(root + "/" + file, root.replace("/home/littlejiver/Downloads/CompletedTorrents", "/mnt/HDD1/PlexContent/Movies") + "/" + file)
     for i in qb.torrents(category='PSDApp'):
         torrents.append(i["hash"])
-    shutil.move(dir_path_needed, "/mnt/HDD1/PlexContent/Movies/")
     qb.delete(torrents)
-    #         rename_list.append(root + "/" + file)
+    #         rename_list.append(root + file)
     #
     # i = "/home/littlejiver/Downloads/CompletedTorrents/Rumble In The Bronx (1995) [1080p] [BluRay] [5.1] [YTS.MX]"
     # z = "/mnt/HDD1/PlexContent/Movies/"
@@ -145,7 +146,6 @@ def move_video_to_plex_server(request):
     # print("Moved file!")
 
     # for i in rename_list:
-    #     temp = os.path.dirname(i).replace("/home/littlejiver/Downloads/CompletedTorrents/", "")
     #     temp2 = temp.replace(temp, "'" + temp + "'")
     #     print(temp2)
     #     list_renamed.append(temp.replace("/home/littlejiver/Downloads/CompletedTorrents/" + temp2 + "/", "/mnt/HDD1/PlexContent/Movies/" + temp2 + "/"))
