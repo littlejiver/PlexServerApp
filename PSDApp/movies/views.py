@@ -132,9 +132,13 @@ def move_video_to_plex_server(request):
     qb.login("admin", "adminadmin")
     for root, dirs, files in os.walk("/home/littlejiver/Downloads/CompletedTorrents"):
         for file in files:
-            if not os.path.exists(root.replace("/home/littlejiver/Downloads/CompletedTorrents", "/mnt/HDD1/PlexContent/Movies")):
+            if not os.path.exists(root.replace("/home/littlejiver/Downloads/CompletedTorrents",
+                                               "/mnt/HDD1/PlexContent/Movies")):
                 os.mkdir(root.replace("/home/littlejiver/Downloads/CompletedTorrents", "/mnt/HDD1/PlexContent/Movies"))
-            shutil.move(root + "/" + file, root.replace("/home/littlejiver/Downloads/CompletedTorrents", "/mnt/HDD1/PlexContent/Movies") + "/" + file)
+                shutil.chown(root.replace("/home/littlejiver/Downloads/CompletedTorrents",
+                                          "/mnt/HDD1/PlexContent/Movies"), "littlejiver", "plexserver")
+            shutil.move(root + "/" + file, root.replace("/home/littlejiver/Downloads/CompletedTorrents",
+                                                        "/mnt/HDD1/PlexContent/Movies") + "/" + file)
     for i in qb.torrents(category='PSDApp'):
         torrents.append(i["hash"])
     qb.delete(torrents)

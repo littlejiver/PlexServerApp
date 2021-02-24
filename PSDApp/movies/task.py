@@ -15,7 +15,7 @@ def torrent_downloading_progress(self, duration):
         for x in qb.torrents(category='PSDApp'):
             print(progress_recorder)
             progress_recorder.set_progress(round(float(x["progress"]*100), 1), 100)
-            if x['state'] == "downloading":
-                continue
-            else:
+            if x['state'] != "uploading":
                 downloading = False
+            else:
+                continue
